@@ -4,10 +4,14 @@ import java.util.List;
 class Node {
     private String name;
     private List<Node> children;
+    private boolean isDirectory;
+    private Node parent;
 
-    public Node(String name) {
+    public Node(String name, boolean isDirectory) {
         this.name = name;
-        this.children = new ArrayList<>();
+        this.isDirectory = isDirectory;
+        this.children = isDirectory ? new ArrayList<>() : null;
+        this.parent = null;
     }
 
     public String getName() {
@@ -18,24 +22,43 @@ class Node {
         return children;
     }
 
-    public void addChild(Node child) {
-        children.add(child);
-    }
-
-    public boolean removeChild(Node child) {
-        return children.remove(child);
-    }
-
     public boolean hasChildren() {
-        return !children.isEmpty();
+        return children != null && !children.isEmpty();
     }
 
     public Node getChildByName(String name) {
-        for (Node child : children) {
-            if (child.getName().equals(name)) {
-                return child;
+        if (children != null) {
+            for (Node child : children) {
+                if (child.getName().equals(name)) {
+                    return child;
+                }
             }
         }
         return null;
+    }
+
+    public void addChild(Node child) {
+        if (children != null) {
+            children.add(child);
+            child.setParent(this); // Set the parent of the child node
+        }
+    }
+
+    public void removeChild(Node child) {
+        if (children != null) {
+            children.remove(child);
+        }
+    }
+
+    public boolean isDirectory() {
+        return isDirectory;
+    }
+
+    public Node getParent() {
+        return parent;
+    }
+
+    private void setParent(Node parent) {
+        this.parent = parent;
     }
 }
