@@ -1,4 +1,4 @@
-import java.util.*;
+import java.util.Scanner;
 
 public class BashTerminal {
     private Tree fileSystem;
@@ -12,26 +12,38 @@ public class BashTerminal {
     public void ls() {
         System.out.println("Contents of current directory:");
         for (Node child : currentDirectory.getChildren()) {
-            System.out.println(child.getName());
+            System.out.println(child.getName() + (child.isDirectory() ? "/" : ""));
         }
     }
 
     public void cd(String directoryName) {
-        Node newDirectory = currentDirectory.getChildByName(directoryName);
-        if (newDirectory != null && newDirectory.hasChildren()) {
-            currentDirectory = newDirectory;
+        if (directoryName.equals("..")) {
+            if (currentDirectory.getParent() != null) {
+                currentDirectory = currentDirectory.getParent();
+            } else {
+                System.out.println("Already at the root directory.");
+            }
         } else {
-            System.out.println("Not a directory or directory not found.");
+            Node newDirectory = currentDirectory.getChildByName(directoryName);
+            if (newDirectory != null && newDirectory.isDirectory()) {
+                currentDirectory = newDirectory;
+            } else {
+                System.out.println("Not a directory or directory not found.");
+            }
         }
     }
 
     public void mkdir(String directoryName) {
-        fileSystem.addDirectory(currentDirectory, directoryName);
+        if (currentDirectory.getChildByName(directoryName) == null) {
+            fileSystem.addDirectory(currentDirectory, directoryName);
+        } else {
+            System.out.println("Directory already exists.");
+        }
     }
 
     public void rmdir(String directoryName) {
         Node directoryToRemove = currentDirectory.getChildByName(directoryName);
-        if (directoryToRemove != null && !directoryToRemove.hasChildren()) {
+        if (directoryToRemove != null && directoryToRemove.isDirectory() && !directoryToRemove.hasChildren()) {
             fileSystem.removeDirectory(currentDirectory, directoryToRemove);
         } else {
             System.out.println("Directory not found or not empty.");
@@ -39,28 +51,39 @@ public class BashTerminal {
     }
 
     public void pwd() {
-        System.out.println("Current directory: " + currentDirectory.getName());
+        Node dir = currentDirectory;
+        StringBuilder path = new StringBuilder(dir.getName());
+        while (dir.getParent() != null) {
+            dir = dir.getParent();
+            path.insert(0, dir.getName() + "/");
+        }
+        System.out.println("Current directory: /" + path.toString());
     }
 
     public void touch(String fileName) {
-        Node newFile = new Node(fileName);
-        currentDirectory.addChild(newFile);
+        if (currentDirectory.getChildByName(fileName) == null) {
+            Node newFile = new Node(fileName, false);
+            currentDirectory.addChild(newFile);
+        } else {
+            System.out.println("File already exists.");
+        }
     }
 
     public void rm(String fileName) {
         Node fileToRemove = currentDirectory.getChildByName(fileName);
-        if (fileToRemove != null) {
+        if (fileToRemove != null && !fileToRemove.isDirectory()) {
             currentDirectory.removeChild(fileToRemove);
         } else {
-            System.out.println("File not found.");
+            System.out.println("File not found or is a directory.");
         }
     }
 
     public void cat(String fileName) {
         Node fileToRead = currentDirectory.getChildByName(fileName);
-        if (fileToRead != null) {
+        if (fileToRead != null && !fileToRead.isDirectory()) {
             System.out.println("Contents of " + fileName + ":");
-            // Read contents of the file and print
+            // Simulate file content
+            System.out.println("This is a file content simulation.");
         } else {
             System.out.println("File not found.");
         }
@@ -87,8 +110,8 @@ public class BashTerminal {
 
         while (true) {
             System.out.print("$ ");
-            String command = scanner.nextLine();
-            String[] tokens = command.split(" ");
+            String command = scanner.nextLine().trim();
+            String[] tokens = command.split("\\s+");
 
             switch (tokens[0]) {
                 case "ls":
@@ -144,6 +167,7 @@ public class BashTerminal {
                     break;
                 case "exit":
                     System.out.println("Exiting terminal.");
+                    scanner.close();
                     return;
                 default:
                     System.out.println("Command not recognized. Type 'help' to see available commands.");
