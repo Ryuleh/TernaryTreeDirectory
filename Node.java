@@ -6,12 +6,14 @@ class Node {
     private List<Node> children;
     private boolean isDirectory;
     private Node parent;
+    private String content; // Added for file content
 
     public Node(String name, boolean isDirectory) {
         this.name = name;
         this.isDirectory = isDirectory;
         this.children = isDirectory ? new ArrayList<>() : null;
         this.parent = null;
+        this.content = ""; // Initialize content for files
     }
 
     public String getName() {
@@ -60,5 +62,21 @@ class Node {
 
     private void setParent(Node parent) {
         this.parent = parent;
+    }
+
+    // Getter and setter for content
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
+    }
+
+    // Method to write content to the file
+    public void writeContent(String content) {
+        if (!isDirectory) { // Only allow writing if it's not a directory
+            this.content = content;
+        }
     }
 }
